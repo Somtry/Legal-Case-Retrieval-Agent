@@ -98,3 +98,10 @@ def format_case_analysis_prompt(
         retrieved_cases=retrieved_cases,
         n_cases=n_cases,
     )
+
+
+def format_similarity_check_prompt(query_case: str, candidate_case: str) -> str:
+    return PROMPT_SIMILARITY_CHECK.format(
+        query_case=query_case,
+        candidate_case=candidate_case,
+    )

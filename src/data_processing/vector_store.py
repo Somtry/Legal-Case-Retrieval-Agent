@@ -68,22 +68,24 @@ class VectorStore:
         embeddings: list[list[float]],
         payloads: list[dict[str, Any]],
         collection_name: str | None = None,
+        start_id: int = 0,
     ) -> None:
         """批量写入向量和元数据。
 
         Args:
             embeddings: 向量列表，每个向量维度为 vector_dim。
             payloads: 与向量一一对应的元数据（案由、法院、日期等）。
+            start_id: 起始 ID，用于多次写入时避免覆盖。
         """
         from qdrant_client.http.models import PointStruct
 
         name = collection_name or self._collection_name
         points = [
-            PointStruct(id=i, vector=emb, payload=payload)
+            PointStruct(id=start_id + i, vector=emb, payload=payload)
             for i, (emb, payload) in enumerate(zip(embeddings, payloads))
         ]
         self.client.upsert(collection_name=name, points=points)
-        logger.info(f"已写入 {len(points)} 条向量到 {name}")
+        logger.info(f"已写入 {len(points)} 条向量到 {name} (ID: {start_id}~{start_id + len(points) - 1})")
 
     def search(
         self,

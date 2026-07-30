@@ -24,6 +24,12 @@ class LegalCasePipeline:
         self.searcher = MultiRouteSearcher()
         self.reranker = Reranker()
 
+        # 预构建 BM25 索引（从 data/processed/ 加载）
+        try:
+            self.searcher.build_bm25_index()
+        except Exception as e:
+            logger.warning(f"BM25 索引构建失败（可忽略，向量检索仍可用）: {e}")
+
     def extract_elements(self, case_description: str) -> dict[str, Any]:
         """Stage 1: 案情要素抽取。
 

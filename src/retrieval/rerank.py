@@ -180,16 +180,19 @@ class Reranker:
         documents = [c.get("payload", {}).get("facts", "") for c in candidates]
         reranker_scores = self._reranker_scores(query, documents)
 
-        # 法律要素加权精排
+        # 法律要素加权精排（创建副本避免修改原始数据）
+        scored: list[dict[str, Any]] = []
         for i, candidate in enumerate(candidates):
             element_score = self._element_weighted_score(
                 query_elements,
                 candidate.get("payload", {}),
                 query_text=query,
             )
-            candidate["rerank_score"] = reranker_scores[i] + element_score
+            result = dict(candidate)  # 浅拷贝避免副作用
+            result["rerank_score"] = reranker_scores[i] + element_score
+            scored.append(result)
 
         # 排序并截取
-        candidates.sort(key=lambda x: x["rerank_score"], reverse=True)
+        scored.sort(key=lambda x: x["rerank_score"], reverse=True)
         logger.info(f"重排序完成，返回 Top-{top_k}")
-        return candidates[:top_k]
+        return scored[:top_k]
