@@ -33,6 +33,10 @@ class Config:
         return self._data.get("model", {})
 
     @property
+    def api(self) -> dict[str, Any]:
+        return self._data.get("api", {})
+
+    @property
     def vector_store(self) -> dict[str, Any]:
         return self._data.get("vector_store", {})
 

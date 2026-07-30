@@ -1,4 +1,9 @@
-"""向量库管理模块：Qdrant collection 的创建、索引构建、批量写入。"""
+"""向量库管理模块：Qdrant collection 的创建、索引构建、批量写入。
+
+支持两种模式:
+    - embedded: 嵌入式模式，不需要 Docker，数据存本地文件（开发用）
+    - server:   连接独立的 Qdrant 服务（Docker 部署）
+"""
 
 from __future__ import annotations
 
@@ -18,15 +23,29 @@ class VectorStore:
 
     @property
     def client(self):
-        """惰性初始化 Qdrant client。"""
+        """惰性初始化 Qdrant client。
+
+        根据 config.vector_store.mode 选择嵌入式或服务端模式。
+        """
         if self._client is None:
             from qdrant_client import QdrantClient
             from qdrant_client.http.models import Distance, VectorParams
 
-            self._client = QdrantClient(
-                host=config.vector_store.get("host", "localhost"),
-                port=config.vector_store.get("port", 6333),
-            )
+            mode = config.vector_store.get("mode", "server")
+
+            if mode == "embedded":
+                # 嵌入式模式：不需要 Docker，数据存本地路径
+                path = config.vector_store.get("path", "qdrant_data")
+                self._client = QdrantClient(path=path)
+                logger.info(f"Qdrant 嵌入式模式，数据路径: {path}")
+            else:
+                # 服务端模式：连接 Docker 部署的 Qdrant
+                self._client = QdrantClient(
+                    host=config.vector_store.get("host", "localhost"),
+                    port=config.vector_store.get("port", 6333),
+                )
+                logger.info(f"Qdrant 服务端模式: {config.vector_store.get('host')}:{config.vector_store.get('port')}")
+
             self._distance = Distance.COSINE
             self._vector_dim = config.vector_store.get("vector_dim", 1024)
             self._VectorParams = VectorParams
@@ -74,12 +93,12 @@ class VectorStore:
     ) -> list[dict[str, Any]]:
         """向量检索，返回 Top-K 结果。"""
         name = collection_name or self._collection_name
-        results = self.client.search(
+        response = self.client.query_points(
             collection_name=name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=top_k,
         )
         return [
-            {"score": hit.score, "payload": hit.payload}
-            for hit in results
+            {"score": point.score, "payload": point.payload}
+            for point in response.points
         ]

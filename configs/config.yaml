@@ -3,10 +3,25 @@ model:
   embedding_path: "BAAI/bge-m3"
   reranker_path: "BAAI/bge-reranker-v2-m3"
 
+# API 模式配置（在 AutoDL 上用 vLLM 部署模型后，本地通过 HTTP 调用）
+# AutoDL 端口映射格式: https://www.autodl.com/docs/container/port/
+api:
+  # vLLM 启动后会分配一个 AutoDL 代理端口，填到这里
+  # 例如 AutoDL 给你的地址是 https://www.autodl.com/api/v1/5142bce2c6a743d2b9f2a1b3
+  # 则 base_url 填: https://www.autodl.com/api/v1/5142bce2c6a743d2b9f2a1b3
+  base_url: "https://www.autodl.com/api/v1/YOUR_PORT_ID"
+  api_key: "EMPTY"  # vLLM 默认不需要 key，填 EMPTY 即可
+  model_name: "ShengbinYue/LawLLM-7B"  # vLLM 启动时 --served-model-name 指定的名字
+
 vector_store:
   type: "qdrant"
-  host: "localhost"
-  port: 6333
+  # 模式选择:
+  #   "embedded" — 嵌入式模式，不需要 Docker，数据存本地文件（开发用）
+  #   "server"   — 连接独立的 Qdrant 服务（需要 Docker 启动）
+  mode: "embedded"
+  path: "qdrant_data"  # 嵌入式模式的本地存储路径
+  host: "localhost"     # server 模式的地址
+  port: 6333            # server 模式的端口
   collection_name: "legal_cases"
   vector_dim: 1024  # BGE-M3 输出维度
 
