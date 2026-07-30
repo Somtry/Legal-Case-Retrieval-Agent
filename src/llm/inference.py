@@ -49,10 +49,10 @@ class LLMInference:
         self._tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
         self._model = LLM(
             model=model_path,
-            quantization="awq",  # T4 16GB / 4090 24GB 需要量化
             max_model_len=4096,
             gpu_memory_utilization=0.9,
             trust_remote_code=True,
+            dtype="float16",
         )
         logger.info(f"已加载本地模型: {model_path}")
 
