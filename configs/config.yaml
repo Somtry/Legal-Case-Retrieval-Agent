@@ -1,0 +1,24 @@
+model:
+  llm_path: "ShengbinYue/LawLLM-7B"
+  embedding_path: "BAAI/bge-m3"
+  reranker_path: "BAAI/bge-reranker-v2-m3"
+
+vector_store:
+  type: "qdrant"
+  host: "localhost"
+  port: 6333
+  collection_name: "legal_cases"
+  vector_dim: 1024  # BGE-M3 输出维度
+
+retrieval:
+  top_k_vector: 50
+  top_k_keyword: 50
+  top_k_final: 5
+
+rerank:
+  weights:
+    cause_of_action: 40
+    focus_similarity: 30
+    fact_overlap: 20
+    same_region: 5
+    recency: 5
