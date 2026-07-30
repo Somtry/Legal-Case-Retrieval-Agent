@@ -91,7 +91,7 @@ class LegalCasePipeline:
             retrieved_cases=cases_text,
             n_cases=len(retrieved_cases),
         )
-        analysis = self.llm.generate(prompt, temperature=0.3, max_tokens=4096)
+        analysis = self.llm.generate(prompt, temperature=0.1, max_tokens=2048)
         return analysis
 
     def run(self, case_description: str) -> dict[str, Any]:

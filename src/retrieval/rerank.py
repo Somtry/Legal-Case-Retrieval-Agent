@@ -176,11 +176,7 @@ class Reranker:
         if not candidates:
             return []
 
-        # BGE-reranker 初排
-        documents = [c.get("payload", {}).get("facts", "") for c in candidates]
-        reranker_scores = self._reranker_scores(query, documents)
-
-        # 法律要素加权精排（创建副本避免修改原始数据）
+        # 法律要素加权精排（跳过 BGE-reranker 以节省显存）
         scored: list[dict[str, Any]] = []
         for i, candidate in enumerate(candidates):
             element_score = self._element_weighted_score(
@@ -188,8 +184,10 @@ class Reranker:
                 candidate.get("payload", {}),
                 query_text=query,
             )
+            # 基础分用向量检索分数
+            base_score = candidate.get("score", 0.0)
             result = dict(candidate)  # 浅拷贝避免副作用
-            result["rerank_score"] = reranker_scores[i] + element_score
+            result["rerank_score"] = base_score + element_score
             scored.append(result)
 
         # 排序并截取

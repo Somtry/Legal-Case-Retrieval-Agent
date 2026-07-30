@@ -49,7 +49,7 @@ class LLMInference:
         self._tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
         self._model = LLM(
             model=model_path,
-            max_model_len=4096,
+            max_model_len=8192,
             gpu_memory_utilization=0.9,
             trust_remote_code=True,
             dtype="float16",
@@ -107,6 +107,7 @@ class LLMInference:
             max_tokens=max_tokens,
             temperature=temperature,
             top_p=0.9,
+            repetition_penalty=1.2,
         )
         outputs = self._model.generate([prompt], sampling)
         return outputs[0].outputs[0].text
