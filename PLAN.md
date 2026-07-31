@@ -1,5 +1,20 @@
 # Legal Case Retrieval Agent - 项目计划
 
+## 当前进度（2026-07-30 更新）
+
+| Phase | 状态 | 完成度 |
+|-------|------|--------|
+| Phase 0: 项目初始化 | ✅ 完成 | 100% |
+| Phase 1: 数据收集与结构化 | ✅ 基本完成 | 80%（CAIL2018 已集成，DISC-Law/AppealCase 解析器已实现待下载） |
+| Phase 2: RAG 检索核心 | ✅ 完成 | 90%（向量+BM25 两路检索，要素加权精排；结构化筛选未实现） |
+| Phase 3: LawLLM-7B 集成 | ✅ 完成 | 100%（AutoDL 4090 上跑通完整 pipeline） |
+| Phase 4: LoRA 微调 | ⬜ 未开始 | 0% |
+| Phase 5: 评测优化与集成 | ⬜ 部分完成 | 20%（README 已写，评测集/指标/UI 未做） |
+
+**已验证环境**：AutoDL RTX 4090 24GB，500 条 CAIL2018 数据，完整 pipeline 约 50s（含模型加载）。
+
+---
+
 ## 项目概述
 
 构建一个法律案例检索助手（Legal Case Retrieval Agent），用户输入案情描述后，系统能够：
@@ -97,7 +112,7 @@
 
 **任务清单**：
 
-- [ ] 0.1 初始化项目结构
+- [x] 0.1 初始化项目结构
   ```
   legal-agent/
   ├── data/
@@ -136,14 +151,14 @@
   └── README.md
   ```
 
-- [ ] 0.2 创建 Python 虚拟环境
+- [x] 0.2 创建 Python 虚拟环境
   ```bash
   python3 -m venv venv
   source venv/bin/activate
   pip install --upgrade pip
   ```
 
-- [ ] 0.3 安装基础依赖
+- [x] 0.3 安装基础依赖
   ```
   # requirements.txt
   # LLM 推理
@@ -170,7 +185,7 @@
   loguru>=0.7.0
   ```
 
-- [ ] 0.4 初始化 Git 仓库
+- [x] 0.4 初始化 Git 仓库
   ```bash
   git init
   echo "venv/" > .gitignore
@@ -179,7 +194,7 @@
   echo "__pycache__/" >> .gitignore
   ```
 
-- [ ] 0.5 编写 config.yaml
+- [x] 0.5 编写 config.yaml
   ```yaml
   model:
     llm_path: "ShengbinYue/LawLLM-7B"
@@ -237,10 +252,10 @@
 
 **任务清单**：
 
-- [ ] 1.1 下载 CAIL2018 数据集（刑事领域，19.6万条小规模版本先试）
+- [x] 1.1 下载 CAIL2018 数据集（刑事领域，19.6万条小规模版本先试）
 - [ ] 1.2 下载 DISC-Law-SFT 数据集（微调数据 + 类案匹配数据）
 - [ ] 1.3 搜索并下载 HuggingFace 上的民事裁判文书数据集
-- [ ] 1.4 编写 case_parser.py，统一数据格式：
+- [x] 1.4 编写 case_parser.py，统一数据格式：
   ```python
   # 统一后的案例数据结构
   {
@@ -258,8 +273,8 @@
       "full_text": "完整文书文本"
   }
   ```
-- [ ] 1.5 数据质量检查：去重、去空、格式校验
-- [ ] 1.6 生成统计报告：各领域案例数量分布
+- [x] 1.5 数据质量检查：去重、去空、格式校验
+- [x] 1.6 生成统计报告：各领域案例数量分布
 
 **交付物**：结构化的裁判文书数据集（JSONL 格式）+ 数据统计报告
 
@@ -271,12 +286,12 @@
 
 **任务清单**：
 
-- [ ] 2.1 部署 Qdrant 向量数据库
+- [x] 2.1 部署 Qdrant 向量数据库
   ```bash
   docker run -d --name qdrant -p 6333:6333 -v $(pwd)/qdrant_data:/qdrant/storage qdrant/qdrant
   ```
 
-- [ ] 2.2 编写 embed.py：用 BGE-M3 批量向量化案例数据
+- [x] 2.2 编写 embed.py：用 BGE-M3 批量向量化案例数据
   ```python
   # 核心逻辑
   from FlagEmbedding import BGEM3FlagModel
@@ -289,20 +304,20 @@
   # chunk 4: 法律依据 + 判决结果
   ```
 
-- [ ] 2.3 批量构建向量索引（在 Kaggle T4 上跑）
+- [x] 2.3 批量构建向量索引（在 Kaggle T4 上跑）
   - 先用 5000 条数据测试管线
   - 验证检索质量后再扩大到全量
 
-- [ ] 2.4 编写 search.py：多路检索
+- [x] 2.4 编写 search.py：多路检索
   - 向量检索：BGE-M3 → Qdrant Top 50
   - 关键词检索：jieba 分词 → BM25 Top 50
   - 结果合并去重
 
-- [ ] 2.5 编写 rerank.py：重排序
+- [x] 2.5 编写 rerank.py：重排序
   - BGE-reranker 初排
   - 法律要素加权精排（案由匹配、争议焦点相似度等）
 
-- [ ] 2.6 端到端测试：输入一个案情，检查检索结果是否合理
+- [x] 2.6 端到端测试：输入一个案情，检查检索结果是否合理
 
 **交付物**：可工作的 RAG 检索管线，输入案情输出 Top 5 相似案例
 
@@ -314,29 +329,29 @@
 
 **任务清单**：
 
-- [ ] 3.1 在 Kaggle 上测试 LawLLM-7B 推理
+- [x] 3.1 在 Kaggle 上测试 LawLLM-7B 推理
   - notebook: notebooks/01_test_lawllm.ipynb
   - 测试内容：法律问答、案情要素抽取、案例分析生成
   - T4 16GB 够跑 7B 模型的 AWQ 量化版本
 
-- [ ] 3.2 编写 inference.py：封装模型调用
+- [x] 3.2 编写 inference.py：封装模型调用
   ```python
   # 支持两种模式：
   # 1. 本地 vLLM 推理（Kaggle/云 GPU）
   # 2. API 调用（如果后续换成云端 API）
   ```
 
-- [ ] 3.3 编写 prompts.py：设计核心 Prompt 模板
+- [x] 3.3 编写 prompts.py：设计核心 Prompt 模板
   - Prompt 1: 案情要素抽取
   - Prompt 2: 案例对比分析
   - Prompt 3: 法律建议生成
 
-- [ ] 3.4 集成到 pipeline.py，跑通完整流程：
+- [x] 3.4 集成到 pipeline.py，跑通完整流程：
   ```
   用户输入 → 要素抽取 → RAG检索 → Rerank → 案例分析生成 → 输出
   ```
 
-- [ ] 3.5 用 10-20 个测试用例验证端到端效果
+- [x] 3.5 用 10-20 个测试用例验证端到端效果
 
 **交付物**：完整可运行的案例检索 Agent
 

@@ -97,11 +97,20 @@ class LLMInference:
             return self._generate_api(prompt, max_tokens, temperature)
 
     def _generate_local(self, prompt: str, max_tokens: int, temperature: float) -> str:
-        """本地 vLLM 推理（在 GPU 机器上运行）。"""
+        """本地 vLLM 推理（在 GPU 机器上运行）。
+
+        使用 chat template 包装 prompt，确保 Qwen2.5-Instruct 正确触发指令模式。
+        """
         if self._model is None:
             self._load_local()
 
         from vllm import SamplingParams
+
+        # 用 chat template 包装，确保指令微调模型正确响应
+        messages = [{"role": "user", "content": prompt}]
+        chat_prompt = self._tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
 
         sampling = SamplingParams(
             max_tokens=max_tokens,
@@ -109,7 +118,7 @@ class LLMInference:
             top_p=0.9,
             repetition_penalty=1.2,
         )
-        outputs = self._model.generate([prompt], sampling)
+        outputs = self._model.generate([chat_prompt], sampling)
         return outputs[0].outputs[0].text
 
     def _generate_api(self, prompt: str, max_tokens: int, temperature: float) -> str:

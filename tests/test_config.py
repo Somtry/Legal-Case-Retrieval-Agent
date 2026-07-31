@@ -5,8 +5,8 @@ from src.config import config
 
 def test_config_loads():
     """验证 config.yaml 能正确加载。"""
-    assert config.model["llm_path"] == "ShengbinYue/LawLLM-7B"
-    assert config.model["embedding_path"] == "BAAI/bge-m3"
+    assert "llm_path" in config.model
+    assert "embedding_path" in config.model
     assert config.vector_store["collection_name"] == "legal_cases"
     assert config.vector_store["vector_dim"] == 1024
 

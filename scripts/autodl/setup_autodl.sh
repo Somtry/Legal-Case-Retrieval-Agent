@@ -45,7 +45,7 @@ install_deps() {
     }
 
     # 安装 vLLM 和相关依赖
-    pip install vllm>=0.6.0 transformers>=4.44.0
+    pip install "vllm>=0.6.0" "transformers>=4.44.0"
     pip install openai  # 本地测试用
     pip install FlagEmbedding sentence-transformers  # embedding/rerank 用
 

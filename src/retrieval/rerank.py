@@ -145,8 +145,9 @@ class Reranker:
         year_match = re.search(r"(\d{4})", date_str)
         if year_match:
             year = int(year_match.group(1))
-            # 以 2024 年为基准，越近分数越高
-            base_year = 2024
+            # 以当前年份为基准，越近分数越高
+            from datetime import datetime
+            base_year = datetime.now().year
             diff = max(0, base_year - year)
             # 10 年内线性衰减，超过 10 年给 0.1
             if diff <= 10:
@@ -176,6 +177,12 @@ class Reranker:
         if not candidates:
             return []
 
+        # 归一化检索分数到 0~1 区间，消除向量分数和 BM25 分数的量纲差异
+        scores = [c.get("score", 0.0) for c in candidates]
+        max_score = max(scores) if scores else 1.0
+        min_score = min(scores) if scores else 0.0
+        score_range = max_score - min_score if max_score != min_score else 1.0
+
         # 法律要素加权精排（跳过 BGE-reranker 以节省显存）
         scored: list[dict[str, Any]] = []
         for i, candidate in enumerate(candidates):
@@ -184,10 +191,10 @@ class Reranker:
                 candidate.get("payload", {}),
                 query_text=query,
             )
-            # 基础分用向量检索分数
-            base_score = candidate.get("score", 0.0)
+            # 归一化后的检索分数 × 100 + 要素加权分（0~100）
+            normalized_score = (candidate.get("score", 0.0) - min_score) / score_range
             result = dict(candidate)  # 浅拷贝避免副作用
-            result["rerank_score"] = base_score + element_score
+            result["rerank_score"] = normalized_score * 100 + element_score
             scored.append(result)
 
         # 排序并截取
